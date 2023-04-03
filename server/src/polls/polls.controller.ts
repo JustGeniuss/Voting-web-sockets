@@ -1,25 +1,34 @@
-import { Controller, Logger, Post } from "@nestjs/common";
-import { Body } from "@nestjs/common/decorators";
-import { CreatePollDto, JoinPollDto } from "./dtos";
+import { Controller, Post } from '@nestjs/common';
+import { Body } from '@nestjs/common/decorators';
+import { CreatePollDto, JoinPollDto } from './dtos';
+import { PollsService } from './polls.service';
 
 @Controller('polls')
 export class PollsController {
-    @Post()
-    async create(@Body() createPollDto: CreatePollDto) {
-        Logger.log('In Create!')
-        return createPollDto;
-    }
+  constructor(private pollsService: PollsService) {}
 
+  @Post()
+  async create(@Body() createPollDto: CreatePollDto) {
+    const result = await this.pollsService.createPoll(createPollDto);
 
-    @Post('/join')
-    async join(@Body() joinPollDto: JoinPollDto) {
-        Logger.log('In Join!')
-        return joinPollDto;
-    }
+    return result;
+  }
 
+  @Post('/join')
+  async join(@Body() joinPollDto: JoinPollDto) {
+    const result = await this.pollsService.joinPoll(joinPollDto);
 
-    @Post('/rejoin')
-    async rejoin() {
-        Logger.log('In Rejoin!')
-    }
+    return result;
+  }
+
+  @Post('/rejoin')
+  async rejoin() {
+    const result = await this.pollsService.rejoinPoll({
+      name: 'from token',
+      pollID: 'Also from token',
+      userID: 'From token',
+    });
+
+    return result;
+  }
 }
