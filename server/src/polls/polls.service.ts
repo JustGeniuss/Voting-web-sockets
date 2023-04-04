@@ -50,6 +50,8 @@ export class PollsService {
     );
 
     const joinedPoll = await this.pollsRepository.getPoll(fields.pollID);
+    
+    this.logger.log(fields);
 
     this.logger.debug(
       `Creating token string for pollID: ${joinedPoll.id} and userID: ${userID}`,
@@ -67,7 +69,7 @@ export class PollsService {
 
     return {
       poll: joinedPoll,
-      token: signedString,
+      accessToken: signedString,
     };
   }
 
