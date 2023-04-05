@@ -38,12 +38,4 @@ type AuthPayload = {
   name: string;
 };
 
-
 export type RequestWithAuth = Request & AuthPayload;
-
-
-
-
-
-
-
