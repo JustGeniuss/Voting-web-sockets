@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { ForbiddenException } from '@nestjs/common/exceptions/forbidden.exception';
 import { JwtService } from '@nestjs/jwt';
+import { RequestWithAuth } from './types';
 
 @Injectable()
 export class ControllerAuthGuard implements CanActivate {
@@ -13,7 +14,7 @@ export class ControllerAuthGuard implements CanActivate {
   constructor(private readonly jwtService: JwtService) {}
 
   canActivate(context: ExecutionContext): boolean | Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
+    const request: RequestWithAuth = context.switchToHttp().getRequest();
 
     this.logger.debug(`Checking for auth token on request body`, request.body);
 
