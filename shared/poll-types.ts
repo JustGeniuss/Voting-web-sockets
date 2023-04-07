@@ -9,7 +9,7 @@ export type Poll = {
   participants: Participants;
   adminID: string;
   nominations: Nominations;
-  // reanking: Rankings;
+  rankings: Rankings;
   // results: Results;
   hasStarted: boolean;
 };
@@ -19,6 +19,15 @@ export type Nomination = {
   text: string;
 };
 
+type nominationID = string;
+
+export type Rankings = {
+  [userID: string]: nominationID[];
+};
+
+
+
+
 export type Nominations = {
-  [nominationId: string]: Nomination;
+  [nominationId: nominationID]: Nomination;
 };

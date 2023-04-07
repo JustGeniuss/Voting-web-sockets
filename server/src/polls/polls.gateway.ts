@@ -8,7 +8,7 @@ import {
   OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
-  WebSocketServer
+  WebSocketServer,
 } from '@nestjs/websockets';
 import { Namespace } from 'socket.io';
 import { WsCatchAllFilter } from 'src/exceptions/ws-catch-all-filter';
@@ -133,6 +133,34 @@ export class PollsGateway
       client.pollID,
       nominationID,
     );
+
+    this.io.to(client.pollID).emit('poll_updated', updatedPoll);
+  }
+
+  @UseGuards(GatewayAdminGuard)
+  @SubscribeMessage('start_vote')
+  async startVote(@ConnectedSocket() client: SocketWithAuth): Promise<void> {
+    this.logger.debug(`Attempting to start voting for poll: ${client.pollID}`);
+
+    const updatedPoll = await this.pollService.startPoll(client.pollID);
+
+    this.io.to(client.pollID).emit('poll_updated', updatedPoll);
+  }
+
+  @SubscribeMessage('submit_rankings')
+  async submitRankings(
+    @ConnectedSocket() client: SocketWithAuth,
+    @MessageBody('rankings') rankings: string[],
+  ): Promise<void> {
+    this.logger.debug(
+      `Submitting votes for user: ${client.userID} belonging to pollID: ${client.pollID}`,
+    );
+
+    const updatedPoll = await this.pollService.submitRankings({
+      pollID: client.pollID,
+      userID: client.userID,
+      rankings,
+    });
 
     this.io.to(client.pollID).emit('poll_updated', updatedPoll);
 
