@@ -8,10 +8,10 @@ import {
   OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
-  WebSocketServer,
+  WebSocketServer
 } from '@nestjs/websockets';
 import { Namespace } from 'socket.io';
-import { WsCatchAllFilter } from 'src/exceptions/ws-catch-all-filter';
+import { WsCatchAllFilter } from '../exceptions/ws-catch-all-filter';
 import { NominationDto } from './dtos';
 import { GatewayAdminGuard } from './gateway-admin.guard';
 import { PollsService } from './polls.service';
@@ -26,7 +26,7 @@ export class PollsGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
   private readonly logger = new Logger(PollsGateway.name);
-  constructor(private readonly pollService: PollsService) {}
+  constructor(private readonly pollsService: PollsService) {}
 
   @WebSocketServer() io: Namespace;
 
@@ -52,7 +52,7 @@ export class PollsGateway
       `Total clients connected to room ${roomName}: ${connectedClients}`,
     );
 
-    const updatedPoll = await this.pollService.addParticipant({
+    const updatedPoll = await this.pollsService.addParticipant({
       pollID: client.pollID,
       userID: client.userID,
       name: client.name,
@@ -64,7 +64,7 @@ export class PollsGateway
   async handleDisconnect(client: SocketWithAuth) {
     const sockets = this.io.sockets;
     const { pollID, userID } = client;
-    const updatedPoll = await this.pollService.removeParticipant(
+    const updatedPoll = await this.pollsService.removeParticipant(
       pollID,
       userID,
     );
@@ -91,7 +91,7 @@ export class PollsGateway
       `Attempting to remove participant ${id} from poll ${client.pollID}`,
     );
 
-    const updatedPoll = await this.pollService.removeParticipant(
+    const updatedPoll = await this.pollsService.removeParticipant(
       client.pollID,
       id,
     );
@@ -110,7 +110,7 @@ export class PollsGateway
       `Attempting to add nomination for user ${client.userID} to poll ${client.pollID}\n${nomination.text}`,
     );
 
-    const updatedPoll = await this.pollService.addNomination({
+    const updatedPoll = await this.pollsService.addNomination({
       pollID: client.pollID,
       userID: client.userID,
       text: nomination.text,
@@ -129,7 +129,7 @@ export class PollsGateway
       `Attempting to remove nomination ${nominationID} from poll ${client.pollID}`,
     );
 
-    const updatedPoll = await this.pollService.removeNomination(
+    const updatedPoll = await this.pollsService.removeNomination(
       client.pollID,
       nominationID,
     );
@@ -142,7 +142,7 @@ export class PollsGateway
   async startVote(@ConnectedSocket() client: SocketWithAuth): Promise<void> {
     this.logger.debug(`Attempting to start voting for poll: ${client.pollID}`);
 
-    const updatedPoll = await this.pollService.startPoll(client.pollID);
+    const updatedPoll = await this.pollsService.startPoll(client.pollID);
 
     this.io.to(client.pollID).emit('poll_updated', updatedPoll);
   }
@@ -156,13 +156,32 @@ export class PollsGateway
       `Submitting votes for user: ${client.userID} belonging to pollID: ${client.pollID}`,
     );
 
-    const updatedPoll = await this.pollService.submitRankings({
+    const updatedPoll = await this.pollsService.submitRankings({
       pollID: client.pollID,
       userID: client.userID,
       rankings,
     });
 
     this.io.to(client.pollID).emit('poll_updated', updatedPoll);
+  }
 
+  @UseGuards(GatewayAdminGuard)
+  @SubscribeMessage('close_poll')
+  async closePoll(@ConnectedSocket() client: SocketWithAuth): Promise<void> {
+    this.logger.debug(`Closing poll: ${client.pollID} and computing results`);
+
+    const updatedPoll = await this.pollsService.computeResults(client.pollID);
+
+    this.io.to(client.pollID).emit('poll_updated', updatedPoll);
+  }
+
+  @UseGuards(GatewayAdminGuard)
+  @SubscribeMessage('cancel_poll')
+  async cancelPoll(@ConnectedSocket() client: SocketWithAuth): Promise<void> {
+    this.logger.debug(`Cancelling poll with id: ${client.pollID}`);
+
+    await this.pollsService.cancelPoll(client.pollID);
+
+    this.io.to(client.pollID).emit('poll_cancelled');
   }
 }
