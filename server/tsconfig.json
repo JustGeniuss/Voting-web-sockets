@@ -12,7 +12,9 @@
     "baseUrl": "./",
     "incremental": true,
     "paths": {
-      "@nestjs/common": ["@nestjs/common/"]
+      "@nestjs/common": [
+        "@nestjs/common/"
+      ]
     },
   }
 }
