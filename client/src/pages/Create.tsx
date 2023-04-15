@@ -81,7 +81,7 @@ const Create: React.FC = () => {
                 />
             </div>
             <div className='mb-12'>
-                <h3 className="text-center">Enter Poll Topic</h3>
+                <h3 className="text-center">Enter Name</h3>
                 <div className='text-center w-full'>
                     <input maxLength={25}
                         onChange={(e) => setName(e.target.value)}
