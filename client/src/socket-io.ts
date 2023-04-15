@@ -32,15 +32,24 @@ export const createSocketWithHandlers = ({
     actions.stopLoading();
   });
 
-  socket.on('poll_updated', (poll) => {
-    console.log(`event: "poll_updated" received`, poll);
-    actions.updatePoll(poll);
-  });
-
   socket.on('connect_error', () => {
     console.log('Failed to connect socket');
 
+    actions.addWsError({
+      type: 'Connection Error',
+      message: 'Failed to connect to the poll',
+    });
     actions.stopLoading();
+  });
+
+  socket.on('exception', (exception) => {
+    console.log('WS exception: ', exception);
+    actions.addWsError(exception);
+  });
+
+  socket.on('poll_updated', (poll) => {
+    console.log(`event: "poll_updated" received`, poll);
+    actions.updatePoll(poll);
   });
 
   return socket;
