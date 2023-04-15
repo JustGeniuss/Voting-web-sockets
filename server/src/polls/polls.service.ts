@@ -47,7 +47,7 @@ export class PollsService {
 
     return {
       poll: createdPoll,
-      AccessToken: signedString,
+      accessToken: signedString,
     };
   }
 
