@@ -1,16 +1,17 @@
+import { nanoid } from 'nanoid';
 import { Poll } from 'shared/poll-types';
 import { Socket } from 'socket.io-client';
 import { proxy, ref } from 'valtio';
 import { subscribeKey } from 'valtio/utils';
-import { getTokenPayload } from './util';
 import { createSocketWithHandlers, socketIOUrl } from './socket-io';
-import { nanoid } from 'nanoid';
+import { getTokenPayload } from './util';
 export enum AppPage {
   Welcome = 'welcome',
   Create = 'create',
   Join = 'join',
   WaitingRoom = 'waiting-room',
   Voting = 'voting',
+  Results = 'results',
 }
 
 type Me = {
@@ -39,6 +40,8 @@ export type AppState = {
   nominationCount: number;
   participantCount: number;
   canStartVote: boolean;
+  hasVoted: boolean;
+  rankingsCount: number;
 };
 
 const state = proxy<AppState>({
@@ -75,6 +78,15 @@ const state = proxy<AppState>({
     const votesPerVoter = this.poll?.votesPerVoter ?? 100;
 
     return this.nominationCount >= votesPerVoter;
+  },
+  get hasVoted() {
+    const rankings = this.poll?.rankings || {};
+    const userID = this.me?.id || '';
+
+    return rankings[userID] !== undefined ? true : false;
+  },
+  get rankingsCount() {
+    return Object.keys(this.poll?.rankings || {}).length;
   },
 });
 
@@ -119,6 +131,9 @@ const actions = {
   nominate: (text: string): void => {
     state.socket?.emit('nominate', { text });
   },
+  closePoll: (): void => {
+    state.socket?.emit('close_poll');
+  },
   startOver: (): void => {
     actions.reset();
     localStorage.removeItem('accessToken');
@@ -142,7 +157,7 @@ const actions = {
     state.socket?.emit('start_vote');
   },
   submitRankings: (rankings: string[]): void => {
-    state.socket?.emit('sumbit_rankings', { rankings });
+    state.socket?.emit('submit_rankings', { rankings });
   },
   cancelPoll: (): void => {
     state.socket?.emit('cancel_poll');

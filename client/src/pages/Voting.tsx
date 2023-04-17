@@ -36,18 +36,19 @@ export const Voting: React.FC = () => {
     }
 
     return (
-        <div className="mx-auto flex flex-col w-full justify-between items-center h-full msx-w-sm">
+        <div className="mx-auto flex flex-col w-full justify-between items-center h-full max-w-sm">
             <div className="w-full">
-                <h1 className="text-center">Voting Page </h1>
+                <h1 className="text-center">Voting Page</h1>
             </div>
             <div className="w-full">
                 {currentState.poll && (
                     <>
-                        <div className="text-center text-x1 font-semibold mb-6">
-                            Select Your Top {currentState.poll?.votesPerVoter} Chocies
+                        <div className="text-center text-xl font-semibold mb-6">
+                            Select Your Top {currentState.poll?.votesPerVoter} Choices
                         </div>
-                        <div className="text-center text-1g font-semibold mb-6 text-indigo-700">
-                            {currentState.poll.votesPerVoter - rankings.length} Votes remaining
+                        <div className="text-center text-lg font-semibold mb-6 text-indigo-700">
+                            {currentState.poll.votesPerVoter - rankings.length} Votes
+                            remaining
                         </div>
                     </>
                 )}
@@ -64,14 +65,16 @@ export const Voting: React.FC = () => {
                     )}
                 </div>
             </div>
-            <div className='mx-auto flex flex-col items-center'>
+            <div className="mx-auto flex flex-col items-center">
                 <button
                     disabled={rankings.length < (currentState.poll?.votesPerVoter ?? 100)}
-                    className='box btn-purple my-2 w-36'
+                    className="box btn-purple my-2 w-36"
                     onClick={() => setConfirmVotes(true)}
-                >Submit Votes</button>
+                >
+                    Submit Votes
+                </button>
                 <ConfirmationDialog
-                    message='You cannot change your vote after submitting'
+                    message="You cannot change your vote after submitting"
                     showDialog={confirmVotes}
                     onCancel={() => setConfirmVotes(false)}
                     onConfirm={() => actions.submitRankings(rankings)}
@@ -79,13 +82,13 @@ export const Voting: React.FC = () => {
                 {currentState.isAdmin && (
                     <>
                         <button
-                            className='box btn-orange my-2 w-36'
+                            className="box btn-orange my-2 w-36"
                             onClick={() => setConfirmCancel(true)}
                         >
                             Cancel Poll
                         </button>
                         <ConfirmationDialog
-                            message='This will cancel the poll and remove all users'
+                            message="This will cancel the poll and remove all users"
                             showDialog={confirmCancel}
                             onCancel={() => setConfirmCancel(false)}
                             onConfirm={() => actions.cancelPoll()}
@@ -94,5 +97,5 @@ export const Voting: React.FC = () => {
                 )}
             </div>
         </div>
-    )
-}
+    );
+};
